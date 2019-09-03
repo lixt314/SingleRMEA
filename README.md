@@ -6,5 +6,37 @@ The development of single-cell RNA-seq technologies provides new opportunities f
 
 We have collected the immune cell single-cell RNA-seq profiles across the human datasets from \citet{schelker2017estimation}. In particular, two PBMC-merged data sources are considered by interpreting three different PBMCs data with the melanoma patient samples and ovarian cancer ascites samples. The PBMCs data includes PBMC-4k and PBMC-12k. The first dataset (PBMC-4k merged) includes 4k PBMCs \footnote{https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k} from a healthy donor, which contains 4000 single cells sequenced on Illumina Hiseq4000 with approximately 87,000 reads per cell \cite{zheng2017massively}, 4645 tumor-derived single cells from 19 melanoma patient samples, 3114 single cells from four ovarian cancer ascites samples. The second dataset (PBMC-12k merged) contains the 4k PBMCs and the 8k PBMCs\footnote{https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc8k} from a healthy donor, melanoma patient samples, and four ovarian cancer ascites samples. The 8k PBMCs has 8,381 cells detected sequenced on Illumina Hiseq4000 with approximately 92,000 reads per cell \cite{zheng2017massively}.  The performance measure reported by 10-fold cross-validation is the average of the values calculated.
 
-# Load data and metadata
+# Load data
 SingleRMEA accepts as input a matrix of raw gene counts with genes as rows and cells as columns. The table should have the format shown below.
+
+# Normalization by housekeeping genes 
+
+Importantly, when we merged those different samples, there exist some bath effects. To address this problem, we apply the to select the housekeeping genes for normalization to decrease statistical power. To minimize platform-dependent errors, we select the housekeeping genes for normalization. In this study, we employed the 3804 housekeeping genes (HK_genes.mat) to normalize the single-cell RNA-seq data.
+
+    % restrict to common genes
+    [~, ia, ib] = intersect(data1.Properties.RowNames,data2.Properties.RowNames);
+    data1 = data1(ia,:);
+    data2 = data2(ib,:);
+    clear ia ib;
+
+    % load house-keeping genes
+    load('HK_genes.mat');
+
+    % find common genes
+    [~, ~, ia] = intersect(hk_genes,data1.Properties.RowNames);
+
+    % convert to TPM scale
+    data1 = logTrafo(data1,-1);
+    data2 = logTrafo(data2,-1);
+
+    % normalize to house-keeping gene expression
+    hk_expr = mean([data1{ia,:} data2{ia,:}],1);
+    id1 = [true(1,size(data1,2)) false(1,size(data2,2))];
+    id2 = [false(1,size(data1,2)) true(1,size(data2,2))];
+
+    data1{:,:} = bsxfun(@times,data1{:,:},mean(hk_expr)./hk_expr(id1));
+    data2{:,:} = bsxfun(@times,data2{:,:},mean(hk_expr)./hk_expr(id2));
+
+    % convert back to log scale
+    data1 = logTrafo(data1,1);
+    data2 = logTrafo(data2,1);
