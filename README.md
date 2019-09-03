@@ -90,3 +90,5 @@ genes = {'Unknown',{},{},{};...
 Most of those previous methods only employ single supervised classification method to identify the cell types. Unfortunately, it is hardly believed that each of those supervised classification methods can be the all-time winner across all datasets for single-cell RNA-seq interpretations. Each supervised classification method has its own strengths and weaknesses; different supervised classification methods are assumed to provide different performance on different single-cell RNA-seq datasets. Therefore, we develop a new ensemble construction method to infer novel cell types from single-cell RNA-seq. Multiobjective optimization is designed for the stacking ensemble construction process to generate platform-specific configurations. Furthermore, we demonstrate the capabilities of our framework on the PBMC data.
 
 [predicted_celltype] = Ensemble_Classify(data,training_celltype)
+
+Compare the predicted celltype results to the true labels.
